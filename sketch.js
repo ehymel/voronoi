@@ -1,10 +1,29 @@
 let seedPoints = [];
 let delaunay, voronoi;
 
+function preload() {
+    // pic = loadImage('Maggie.jpg');
+    // pic = loadImage('side.jpg');
+    pic = loadImage('tess.jpg');
+    pic.resize(400, 0);
+}
+
 function setup() {
-    createCanvas(600, 600);
-    for (let i = 0; i < 1000; i++) {
-        seedPoints[i] = createVector(random(width), random(height));
+    let w = pic.width;
+    let h = pic.height;
+    createCanvas(w, h);
+    let numberPoints = 20000; // w * h / 20
+
+    for (let i = 0; i < numberPoints; i++) {
+        let x = random(width);
+        let y = random(height);
+        let col = pic.get(x,y);
+        if (brightness(col) < 48) {
+            seedPoints.push(createVector(x, y));
+        } else {
+            i--;
+        }
+        // seedPoints.push(createVector(x, y));
     }
 
     delaunay = calculateDelaunay(seedPoints);
@@ -13,6 +32,7 @@ function setup() {
 
 function draw() {
     background(255);
+    // image(pic, 0, 0);
 
     for (let v of seedPoints) {
         stroke(0);
@@ -33,20 +53,30 @@ function draw() {
     let polygons = voronoi.cellPolygons();
     let cells = Array.from(polygons);
 
-    for (let poly of cells) {
-        stroke(0);
-        strokeWeight(1);
-        noFill();
-        beginShape();
-        for (let i = 0; i < poly.length; i++) {
-            vertex(poly[i][0], poly[i][1]);
-        }
-        endShape();
-    }
+    showPolygons(cells);
 
     strokeWeight(2);
 
-    let centroids = [];
+    let centroids = getCentroids(cells);
+
+    for (let i = 0; i < seedPoints.length; i++) {
+        seedPoints[i].lerp(centroids[i], 0.1);
+    }
+
+    delaunay = calculateDelaunay(seedPoints);
+    voronoi = delaunay.voronoi([0, 0, width, height]);
+}
+
+function calculateDelaunay(points) {
+    let pointsArray = [];
+    for (let v of points) {
+        pointsArray.push(v.x, v.y);
+    }
+    return new d3.Delaunay(pointsArray);
+}
+
+function getCentroids(cells) {
+    centroids = [];
     for (let poly of cells) {
         let area = 0;
         let centroid = createVector(0, 0);
@@ -66,19 +96,18 @@ function draw() {
         // strokeWeight(4);
         // point(centroid.x, centroid.y);
     }
-
-    for (let i = 0; i < seedPoints.length; i++) {
-        seedPoints[i].lerp(centroids[i], 0.1);
-    }
-
-    delaunay = calculateDelaunay(seedPoints);
-    voronoi = delaunay.voronoi([0, 0, width, height]);
+    return centroids;
 }
 
-function calculateDelaunay(points) {
-    let pointsArray = [];
-    for (let v of points) {
-        pointsArray.push(v.x, v.y);
+function showPolygons(cells) {
+    for (let poly of cells) {
+        stroke(0);
+        strokeWeight(1);
+        noFill();
+        beginShape();
+        for (let i = 0; i < poly.length; i++) {
+            vertex(poly[i][0], poly[i][1]);
+        }
+        endShape();
     }
-    return new d3.Delaunay(pointsArray);
 }
