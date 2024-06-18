@@ -138,7 +138,7 @@ function getCentroidsColors(centroids) {
 
     pic.loadPixels();
     let delaunayIndex = 0;
-    for (let i = 0; i < centroids.length; i++) {
+    for (let i = 0; i < width; i++) {
         for (let j = 0; j < height; j++) {
             let index = (i + j * width) * 4;
             delaunayIndex = delaunay.find(i, j, delaunayIndex);
@@ -147,15 +147,14 @@ function getCentroidsColors(centroids) {
             colors[delaunayIndex][0] += pic.pixels[index];       // r
             colors[delaunayIndex][1] += pic.pixels[index + 1];   // g
             colors[delaunayIndex][2] += pic.pixels[index + 2];   // b
-            colors[delaunayIndex][3]
         }
     }
 
     for (let i = 0; i < counts.length; i++) {
         if (counts[i] > 0) {
             colors[i][0] = colors[i][0] / counts[i];
-            colors[i][1] = colors[i][2] / counts[i];
-            colors[i][2] = colors[i][1] / counts[i];
+            colors[i][1] = colors[i][1] / counts[i];
+            colors[i][2] = colors[i][2] / counts[i];
         }
     }
 
