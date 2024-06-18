@@ -35,7 +35,7 @@ function draw() {
     let polygons = voronoi.cellPolygons();
     let cells = Array.from(polygons);
 
-    showPoints();
+    // showPoints();
 
     // noFill();
     // strokeWeight(1);
@@ -47,9 +47,10 @@ function draw() {
     //     triangle(points[a], points[a + 1], points[b], points[b + 1], points[c], points[c + 1], );
     // }
 
-    // showPolygons(cells);
-
     let centroids = getWeightedCentroids(cells);
+    let colors = getCentroidsColors(centroids);
+
+    showPolygons(cells, colors);
 
     for (let i = 0; i < seedPoints.length; i++) {
         seedPoints[i].lerp(centroids[i], 0.1);
@@ -128,14 +129,48 @@ function getCentroids(cells) {
     return centroids;
 }
 
-function showPolygons(cells) {
-    stroke(0);
-    strokeWeight(1);
-    noFill();
-    for (let poly of cells) {
+function getCentroidsColors(centroids) {
+    let colors = new Array(centroids.length); // array of r,g,b color of each centroid
+    let counts = new Array(centroids.length).fill(0); // how many pixels in each centroid
+    for (let i = 0; i < centroids.length; i++) {
+        colors[i] = [0, 0, 0]; // r, g, b
+    }
+
+    pic.loadPixels();
+    let delaunayIndex = 0;
+    for (let i = 0; i < centroids.length; i++) {
+        for (let j = 0; j < height; j++) {
+            let index = (i + j * width) * 4;
+            delaunayIndex = delaunay.find(i, j, delaunayIndex);
+
+            counts[delaunayIndex] += 1;
+            colors[delaunayIndex][0] += pic.pixels[index];       // r
+            colors[delaunayIndex][1] += pic.pixels[index + 1];   // g
+            colors[delaunayIndex][2] += pic.pixels[index + 2];   // b
+            colors[delaunayIndex][3]
+        }
+    }
+
+    for (let i = 0; i < counts.length; i++) {
+        if (counts[i] > 0) {
+            colors[i][0] = colors[i][0] / counts[i];
+            colors[i][1] = colors[i][2] / counts[i];
+            colors[i][2] = colors[i][1] / counts[i];
+        }
+    }
+
+    return colors;
+}
+
+function showPolygons(cells, colors) {
+    strokeWeight(0);
+    for (let i = 0; i < cells.length; i++) {
+        let poly = cells[i];
+        let color = colors[i]; // array of [r, g, b]
+        fill(color[0], color[1], color[2]);
         beginShape();
-        for (let i = 0; i < poly.length; i++) {
-            vertex(poly[i][0], poly[i][1]);
+        for (let j = 0; j < poly.length; j++) {
+            vertex(poly[j][0], poly[j][1]);
         }
         endShape();
     }
