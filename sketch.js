@@ -12,7 +12,7 @@ function setup() {
     let w = pic.width;
     let h = pic.height;
     createCanvas(w, h);
-    let numberPoints = 20000; // w * h / 20
+    let numberPoints = 5000; // w * h / 20
 
     for (let i = 0; i < numberPoints; i++) {
         let x = random(width);
@@ -60,7 +60,7 @@ function draw() {
     let centroids = getWeightedCentroids(cells);
 
     for (let i = 0; i < seedPoints.length; i++) {
-        seedPoints[i].lerp(centroids[i], 0.1);
+        seedPoints[i].lerp(centroids[i], 0.5);
     }
 
     delaunay = calculateDelaunay(seedPoints);
@@ -96,7 +96,7 @@ function getWeightedCentroids(cells) {
             delaunayIndex = delaunay.find(i, j, delaunayIndex);
             centroids[delaunayIndex].x += i * weight;
             centroids[delaunayIndex].y += j * weight;
-            weights[dalaunayIndex] += weight;
+            weights[delaunayIndex] += weight;
         }
     }
 
