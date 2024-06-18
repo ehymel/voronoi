@@ -53,11 +53,11 @@ function draw() {
     let polygons = voronoi.cellPolygons();
     let cells = Array.from(polygons);
 
-    showPolygons(cells);
+    // showPolygons(cells);
 
     strokeWeight(2);
 
-    let centroids = getCentroids(cells);
+    let centroids = getWeightedCentroids(cells);
 
     for (let i = 0; i < seedPoints.length; i++) {
         seedPoints[i].lerp(centroids[i], 0.1);
@@ -73,6 +73,42 @@ function calculateDelaunay(points) {
         pointsArray.push(v.x, v.y);
     }
     return new d3.Delaunay(pointsArray);
+}
+
+function getWeightedCentroids(cells) {
+    let centroids = new Array(cells.length);
+    let weights = new Array(cells.length).fill(0);
+    for (let i = 0; i < centroids.length; i++) {
+        centroids[i] = createVector(0, 0);
+    }
+
+    pic.loadPixels();
+    let delaunayIndex = 0;
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; i < height; i++) {
+            let index = (i + j * width) * 4;
+            let r = pic.pixels[index];
+            let g = pic.pixels[index + 1];
+            let b = pic.pixels[index + 2];
+            let luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            let weight = 1 - luminance / 255;
+
+            delaunayIndex = delaunay.find(i, j, delaunayIndex);
+            centroids[delaunayIndex].x += i * weight;
+            centroids[delaunayIndex].y += j * weight;
+            weights[dalaunayIndex] += weight;
+        }
+    }
+
+    for (let i = 0; i < centroids.length; i++) {
+        if (weights[i] > 0) {
+            centroids[i].div(weights[i]);
+        } else {
+            centroids[i] = seedPoints[i].copy();
+        }
+    }
+
+    return centroids;
 }
 
 function getCentroids(cells) {
