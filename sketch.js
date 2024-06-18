@@ -2,23 +2,21 @@ let seedPoints = [];
 let delaunay, voronoi;
 
 function preload() {
-    // pic = loadImage('Maggie.jpg');
-    // pic = loadImage('side.jpg');
-    pic = loadImage('tess.jpg');
-    pic.resize(400, 0);
+    pic = loadImage('dog.jpg');
+    // pic.resize(400, 0);
 }
 
 function setup() {
     let w = pic.width;
     let h = pic.height;
     createCanvas(w, h);
-    let numberPoints = 5000; // w * h / 20
+    let numberPoints = 10000; // w * h / 20
 
     for (let i = 0; i < numberPoints; i++) {
         let x = random(width);
         let y = random(height);
         let col = pic.get(x,y);
-        if (brightness(col) < 48) {
+        if (brightness(col) < 50) {
             seedPoints.push(createVector(x, y));
         } else {
             i--;
@@ -34,11 +32,10 @@ function draw() {
     background(255);
     // image(pic, 0, 0);
 
-    for (let v of seedPoints) {
-        stroke(0);
-        strokeWeight(2);
-        point(v.x, v.y);
-    }
+    let polygons = voronoi.cellPolygons();
+    let cells = Array.from(polygons);
+
+    showPoints();
 
     // noFill();
     // strokeWeight(1);
@@ -50,17 +47,12 @@ function draw() {
     //     triangle(points[a], points[a + 1], points[b], points[b + 1], points[c], points[c + 1], );
     // }
 
-    let polygons = voronoi.cellPolygons();
-    let cells = Array.from(polygons);
-
     // showPolygons(cells);
-
-    strokeWeight(2);
 
     let centroids = getWeightedCentroids(cells);
 
     for (let i = 0; i < seedPoints.length; i++) {
-        seedPoints[i].lerp(centroids[i], 0.5);
+        seedPoints[i].lerp(centroids[i], 0.1);
     }
 
     delaunay = calculateDelaunay(seedPoints);
@@ -78,6 +70,7 @@ function calculateDelaunay(points) {
 function getWeightedCentroids(cells) {
     let centroids = new Array(cells.length);
     let weights = new Array(cells.length).fill(0);
+
     for (let i = 0; i < centroids.length; i++) {
         centroids[i] = createVector(0, 0);
     }
@@ -85,7 +78,7 @@ function getWeightedCentroids(cells) {
     pic.loadPixels();
     let delaunayIndex = 0;
     for (let i = 0; i < width; i++) {
-        for (let j = 0; i < height; i++) {
+        for (let j = 0; j < height; j++) {
             let index = (i + j * width) * 4;
             let r = pic.pixels[index];
             let g = pic.pixels[index + 1];
@@ -136,14 +129,22 @@ function getCentroids(cells) {
 }
 
 function showPolygons(cells) {
+    stroke(0);
+    strokeWeight(1);
+    noFill();
     for (let poly of cells) {
-        stroke(0);
-        strokeWeight(1);
-        noFill();
         beginShape();
         for (let i = 0; i < poly.length; i++) {
             vertex(poly[i][0], poly[i][1]);
         }
         endShape();
+    }
+}
+
+function showPoints() {
+    stroke(0);
+    strokeWeight(1);
+    for (let v of seedPoints) {
+        point(v.x, v.y);
     }
 }
